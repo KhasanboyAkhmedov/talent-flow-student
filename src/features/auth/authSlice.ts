@@ -47,6 +47,7 @@ export const loginUser = createAsyncThunk<
       }
 
       const data = await response.json();
+      localStorage.setItem('user', JSON.stringify(data.access_token));
       return data as User; 
     } catch {
       return rejectWithValue('Network error or server is unreachable.');
