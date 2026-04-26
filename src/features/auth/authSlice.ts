@@ -2,13 +2,18 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 
 // 1. Define Types & Interfaces
 export interface User {
-  email: string;
-  id?: string;
+  id: string;
   name?: string;
+  surname?: string;
+  username?: string;
+  userRole: string;
+  age?: number;
+  email: string;
 }
 
 export interface AuthState {
   user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
@@ -20,11 +25,11 @@ export interface LoginCredentials {
   password?: string;
 }
 
-const API_URL = import.meta.env.VITE_API_URL
+const API_URL = "http://192.168.1.105:8000"
+//  import.meta.env.VITE_API_URL ||
 
-// 2. Async Thunk (Using FormData)
 export const loginUser = createAsyncThunk<
-  User, // Return type of the payload creator
+  { user: User; access_token: string }, // Return type of the payload creator
   LoginCredentials, // First argument to the payload creator
   { rejectValue: string } // Types for ThunkAPI
 >(
@@ -47,8 +52,9 @@ export const loginUser = createAsyncThunk<
       }
 
       const data = await response.json();
-      localStorage.setItem('user', JSON.stringify(data.access_token));
-      return data as User; 
+      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      return data; 
     } catch {
       return rejectWithValue('Network error or server is unreachable.');
     }
@@ -59,6 +65,7 @@ const savedUser = localStorage.getItem('user');
 
 const initialState: AuthState = {
   user: savedUser ? JSON.parse(savedUser) : null,
+  token: localStorage.getItem('token'),
   isAuthenticated: !!savedUser,
   loading: false,
   error: null,
@@ -70,9 +77,11 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     initializeAuth: (state) => {
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        state.user = JSON.parse(savedUser);
+      const user = localStorage.getItem('user');
+      const token = localStorage.getItem('token');      
+      if (user && token) {
+        state.user = JSON.parse(user);
+        state.token = token;
         state.isAuthenticated = true;
       }
       state.loading = false;
@@ -82,6 +91,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       localStorage.removeItem('user');
+      localStorage.removeItem('token');
     },
     clearError: (state) => {
       state.error = null;
@@ -93,10 +103,13 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(loginUser.fulfilled, (state, action: PayloadAction<User>) => {
+      .addCase(loginUser.fulfilled, (state, action: PayloadAction<{ user: User; access_token: string }>) => {
         state.loading = false;
         state.isAuthenticated = true;
-        state.user = action.payload;
+        state.user = action.payload.user;
+        state.token = action.payload.access_token;
+        console.log('action', action.payload);
+        
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;

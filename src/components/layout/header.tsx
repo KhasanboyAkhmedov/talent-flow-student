@@ -2,7 +2,6 @@ import React from 'react';
 import { 
   SearchOutlined, 
   BellOutlined, 
-  QuestionCircleOutlined, 
   UserOutlined,
   LogoutOutlined,
   MenuUnfoldOutlined,
@@ -29,7 +28,6 @@ const Header: React.FC<HeaderProps> = ({ user, collapsed, onToggle, onLogout }) 
   return (
     <header className="flex items-center justify-between border-b border-gray-100 px-8 h-20 bg-white/80 backdrop-blur-md shrink-0 sticky top-0 z-20">
       <div className="flex items-center gap-4">
-        {/* Mobile Toggle Button */}
         <Button
           type="text"
           icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -37,7 +35,6 @@ const Header: React.FC<HeaderProps> = ({ user, collapsed, onToggle, onLogout }) 
           className="text-gray-400 hover:text-black lg:hidden"
         />
         
-        {/* Search Bar */}
         <div className="hidden md:flex w-full max-w-xl items-center">
           <div className="relative w-80 group">
             <SearchOutlined className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-black transition-colors" />
@@ -50,33 +47,29 @@ const Header: React.FC<HeaderProps> = ({ user, collapsed, onToggle, onLogout }) 
       </div>
 
       <div className="flex items-center gap-6">
-        {/* Actions */}
         <div className="flex items-center gap-3">
           <button className="flex items-center justify-center rounded-full size-10 text-gray-400 hover:bg-gray-100 hover:text-black transition-colors relative">
             <BellOutlined className="text-lg" />
             <span className="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white"></span>
           </button>
-          <button className="hidden sm:flex items-center justify-center rounded-full size-10 text-gray-400 hover:bg-gray-100 hover:text-black transition-colors">
-            <QuestionCircleOutlined className="text-lg" />
-          </button>
         </div>
 
         <div className="h-8 w-px bg-gray-100" />
 
-        {/* User Profile */}
         <div className="flex items-center gap-4">
           <div className="text-right hidden sm:block">
+            {/* Displaying actual user name and role from Redux state */}
             <p className="text-xs font-bold text-gray-900 leading-none mb-1">
-              {user?.email?.split('@')[0] || 'Admin'}
+              {user ? `${user.name} ${user.surname}` : 'Admin'}
             </p>
             <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">
-              Recruitment Lead
+              {user?.userRole || 'Recruitment Lead'}
             </p>
           </div>
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
             <Avatar 
               className="cursor-pointer bg-gray-100 border border-gray-200 shadow-sm" 
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || 'default'}`}
+              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'default'}`}
             />
           </Dropdown>
         </div>
