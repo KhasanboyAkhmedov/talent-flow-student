@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { message, Spin } from 'antd';
+import { Spin } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 
 interface ApplicationItem {
@@ -19,12 +19,19 @@ const ActivityTable: React.FC = () => {
   useEffect(() => {
     const fetchApplications = async () => {
       try {
-        const response = await fetch('http://192.168.1.105:8000/dashboard/recent_applications?page=1&size=5');
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/dashboard/recent_applications?page=1&size=5`,
+          {
+            headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+        );
         if (!response.ok) throw new Error('Failed to fetch data');
         const result = await response.json();
-        setData(result.items || []); // Ensure it defaults to empty array if items is null
+        setData(result.items || []);
       } catch (error) {
-        message.error('Error loading recent applications');
         console.error(error);
         setData([]); 
       } finally {

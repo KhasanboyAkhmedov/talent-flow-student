@@ -25,8 +25,7 @@ export interface LoginCredentials {
   password?: string;
 }
 
-const API_URL = "http://192.168.1.105:8000"
-//  import.meta.env.VITE_API_URL ||
+const API_URL = import.meta.env.VITE_API_URL
 
 export const loginUser = createAsyncThunk<
   { user: User; access_token: string }, // Return type of the payload creator
