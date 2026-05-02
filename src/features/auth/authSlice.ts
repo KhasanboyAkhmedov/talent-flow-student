@@ -40,7 +40,7 @@ export const loginUser = createAsyncThunk<
       if (username) formData.append('username', username);
       if (password) formData.append('password', password);
 
-      const response = await fetch(`${API_URL}/users/login`, {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         body: formData,
       });

@@ -6,6 +6,7 @@ import Dashboard from './pages/dashboard';
 import { useAppDispatch } from './app/hooks';
 import { initializeAuth } from './features/auth/authSlice';
 import SignIn from './pages/signIn';
+import AssessmentsPage from './pages/assessments';
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -23,6 +24,10 @@ const App: React.FC = () => {
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/my-assessments" element={<AssessmentsPage />} />
+          {/* <Route path="/candidates" element={<Dashboard />} />
+          <Route path="/certificates" element={<Dashboard />} />
+          <Route path="/my-profile" element={<Dashboard />} /> */}
         </Route>
       </Route>
 

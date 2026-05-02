@@ -20,7 +20,7 @@ const ActivityTable: React.FC = () => {
     const fetchApplications = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/dashboard/recent_applications?page=1&size=5`,
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/candidate/dashboard/applications/recent?page=1&size=5`,
           {
             headers: {
             'Content-Type': 'application/json',

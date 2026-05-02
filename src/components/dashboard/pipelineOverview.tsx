@@ -17,7 +17,7 @@ const PipelineOverview: React.FC = () => {
       try {
         const token = localStorage.getItem('token');
 
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/dashboard/pipeline`,
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/candidate/dashboard/pipeline`,
           {
             headers: {
             'Content-Type': 'application/json',
