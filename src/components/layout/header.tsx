@@ -57,8 +57,9 @@ const Header: React.FC<HeaderProps> = ({ user, collapsed, onToggle, onLogout }) 
           </div>
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
             <Avatar 
-              className="cursor-pointer bg-gray-100 border border-gray-200 shadow-sm" 
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'default'}`}
+              className="cursor-pointer bg-gray-100 border border-gray-200 shadow-sm"
+              icon={<UserOutlined className="text-gray-400" />}
+              size={'large'}
             />
           </Dropdown>
         </div>
