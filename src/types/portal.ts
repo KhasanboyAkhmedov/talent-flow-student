@@ -104,6 +104,19 @@ export interface DashboardResponse {
   certificates_preview: CertificateItem[];
   notifications_preview?: NotificationItem[];
   profile_share_url?: string;
+  // T2: optional summary of all candidate applications. The new
+  // dashboard surface shows counts (tests to take / in review /
+  // completed) that link into the My Applications page rather than
+  // hosting a "first test" CTA itself.
+  applications_summary?: {
+    total: number;
+    in_progress: number;
+    hired: number;
+    rejected: number;
+    tests_to_take: number;
+    tests_in_review: number;
+    tests_completed: number;
+  };
 }
 
 export interface AnalyticsResponse {
@@ -271,6 +284,29 @@ export interface VacancyApplicationBlock {
   is_terminal: boolean;
 }
 
+// T1/T3: canonical per-application test summary surfaced everywhere
+// the candidate looks at a job. `status` drives the single CTA the UI
+// shows, so it must stay in sync with the backend statuses.
+export type ApplicationTestStatus =
+  | 'unavailable'
+  | 'not_assigned'
+  | 'ready_to_take'
+  | 'in_progress'
+  | 'expired'
+  | 'submitted'
+  | 'completed';
+
+export interface VacancyTestBlock {
+  status: ApplicationTestStatus;
+  label: string;
+  cta_label: string | null;
+  cta_url: string | null;
+  session_id: string | null;
+  assignment_id: string | null;
+  score: number | null;
+  deadline: string | null;
+}
+
 export interface VacancyDetail {
   id: string;
   job_name: string;
@@ -285,6 +321,7 @@ export interface VacancyDetail {
   practice: VacancyPracticeSummary | null;
   application: VacancyApplicationBlock | null;
   session_id: string | null;
+  test: VacancyTestBlock;
 }
 
 export interface ApplicationsResponse {
@@ -296,6 +333,11 @@ export interface ApplicationsResponse {
     rejected: number;
   };
   pipeline: string[];
+  summary?: {
+    tests_to_take: number;
+    tests_in_review: number;
+    tests_completed: number;
+  };
 }
 
 export interface ReportResponse {
