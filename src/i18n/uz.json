@@ -182,6 +182,8 @@
     "candidates": "nomzodlar",
     "description": "Vakansiya haqida",
     "assignedTest": "Tayinlangan test",
+    "testLabel": "Test",
+    "testScore": "Natija",
     "startAssignedTest": "Tayinlangan testni boshlash",
     "yourStatus": "Sizning arizangiz",
     "notAppliedYet": "Siz hali ariza topshirmadingiz.",

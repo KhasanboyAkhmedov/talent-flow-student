@@ -8,7 +8,7 @@ import {
   WarningFilled,
 } from '@ant-design/icons';
 import { Modal, Progress, Spin, message } from 'antd';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   useNextQuestion,
   usePracticeEligibility,
@@ -108,6 +108,12 @@ const fireAbandonBeacon = (sessionId: string) => {
 
 const TestPage: React.FC = () => {
   const { practiceId } = useParams();
+  const [searchParams] = useSearchParams();
+  // T1: the candidate is taking the test for a *specific* application.
+  // The applications page links here with ?candidate=<id>; absent that
+  // the test still runs but isn't application-scoped (legacy / admin
+  // direct invites).
+  const candidateId = searchParams.get('candidate');
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
   const { t } = useI18n();
@@ -136,7 +142,10 @@ const TestPage: React.FC = () => {
   const mobileBlocked = useMemo(() => isMobileTestDevice(), []);
 
   const { data: practice, isLoading: practiceLoading } = usePracticeInfo(practiceId);
-  const { data: eligibility, isLoading: eligibilityLoading } = usePracticeEligibility(practiceId);
+  const { data: eligibility, isLoading: eligibilityLoading } = usePracticeEligibility(
+    practiceId,
+    candidateId,
+  );
   // Strict no-resume policy: the active session id is ONLY what React
   // state holds (set by `setSessionId` after a fresh POST /sessions).
   // We never silently pick up an `in_progress` session reported by the
@@ -401,7 +410,10 @@ const TestPage: React.FC = () => {
           return;
         }
       }
-      const session = await startSession.mutateAsync(practiceId);
+      const session = await startSession.mutateAsync({
+        practiceId,
+        candidateId,
+      });
       setSessionId(session.session_id);
       setGateOpen(false);
       // Mark the session-start moment so the abandon listeners can

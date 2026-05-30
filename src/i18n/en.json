@@ -182,6 +182,8 @@
     "candidates": "candidates",
     "description": "About the role",
     "assignedTest": "Assigned test",
+    "testLabel": "Test",
+    "testScore": "Score",
     "startAssignedTest": "Start assigned test",
     "yourStatus": "Your application",
     "notAppliedYet": "You haven't applied yet.",

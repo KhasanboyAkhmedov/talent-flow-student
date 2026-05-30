@@ -198,18 +198,27 @@ const VacancyDetailModal: React.FC<VacancyDetailModalProps> = ({
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  if (data.practice) {
-                    onClose();
-                    navigate(`/test/${data.practice.practice_id}`);
-                  }
-                }}
-                className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-bold cursor-pointer shadow-lg shadow-indigo-600/20"
-              >
-                <ThunderboltFilled /> {t('jobs.startAssignedTest')}
-              </button>
+              {/* T1: drive the CTA off the application's test block so the
+                 link includes the candidate id and is statused correctly. */}
+              {data.test && data.test.status !== 'unavailable' && (
+                <div className="mt-4">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">
+                    {data.test.label}
+                  </div>
+                  {data.test.cta_label && data.test.cta_url && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        navigate(data.test.cta_url!);
+                      }}
+                      className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-bold cursor-pointer shadow-lg shadow-indigo-600/20"
+                    >
+                      <ThunderboltFilled /> {data.test.cta_label}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
