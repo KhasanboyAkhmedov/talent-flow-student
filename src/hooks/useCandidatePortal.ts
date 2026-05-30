@@ -43,7 +43,8 @@ export const portalKeys = {
   assessment: (practiceId: string) => ['candidatePortal', 'assessment', practiceId] as const,
   report: (sessionId: string) => ['candidatePortal', 'report', sessionId] as const,
   practice: (practiceId: string) => ['testing', 'practice', practiceId] as const,
-  eligibility: (practiceId: string) => ['testing', 'eligibility', practiceId] as const,
+  eligibility: (practiceId: string, candidateId: string) =>
+    ['testing', 'eligibility', practiceId, candidateId] as const,
   session: (sessionId: string) => ['testing', 'session', sessionId] as const,
   nextQuestion: (sessionId: string) => ['testing', 'nextQuestion', sessionId] as const,
   leaderboard: (scope: string) => ['candidatePortal', 'leaderboard', scope] as const,
@@ -330,13 +331,24 @@ export const usePracticeInfo = (practiceId?: string) => (
   })
 );
 
-export const usePracticeEligibility = (practiceId?: string) => (
-  useQuery({
-    queryKey: portalKeys.eligibility(practiceId ?? ''),
-    queryFn: () => apiFetch<PracticeEligibility>(`/testing/practices/${practiceId}/eligibility`),
+export const usePracticeEligibility = (
+  practiceId?: string,
+  candidateId?: string | null,
+) => {
+  // T1: every eligibility call is scoped by application. The query key
+  // includes candidateId so two applications sharing the same practice
+  // never hit the same cache entry.
+  const candidateKey = candidateId ?? '';
+  const query = candidateId ? `?candidate_id=${encodeURIComponent(candidateId)}` : '';
+  return useQuery({
+    queryKey: portalKeys.eligibility(practiceId ?? '', candidateKey),
+    queryFn: () =>
+      apiFetch<PracticeEligibility>(
+        `/testing/practices/${practiceId}/eligibility${query}`,
+      ),
     enabled: Boolean(practiceId),
-  })
-);
+  });
+};
 
 export const useSessionProgress = (sessionId?: string) => (
   useQuery({
@@ -360,7 +372,14 @@ export const useStartSession = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (practiceId: string) =>
+    // T1: callers pass the *application* (candidateId) along with the
+    // practiceId so the resulting TestSession is scoped to a single
+    // job application. Older callers still work — candidateId is
+    // optional and only included in the body when provided.
+    mutationFn: ({
+      practiceId,
+      candidateId,
+    }: { practiceId: string; candidateId?: string | null }) =>
       // No-resume policy: the backend POST /sessions already 409s if any
       // prior session exists (finished, abandoned, or in-flight), so we
       // skip the redundant preflight GET /eligibility. The mutation
@@ -369,6 +388,7 @@ export const useStartSession = () => {
         method: 'POST',
         body: JSON.stringify({
           device_fingerprint: `${navigator.platform || 'unknown'}:${screen.width}x${screen.height}:${Intl.DateTimeFormat().resolvedOptions().timeZone || 'tz'}`,
+          ...(candidateId ? { candidate_id: candidateId } : {}),
         }),
       }),
     onSuccess: (data) => {

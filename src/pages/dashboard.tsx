@@ -139,6 +139,49 @@ const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <section className="xl:col-span-2 space-y-8">
+          {/* T2: dashboard is now a summary — the actual list of tests
+             lives on the My Applications page. Each tile links into the
+             filtered view so the candidate has a single source of truth
+             instead of "first test on dashboard + the rest elsewhere". */}
+          {data.applications_summary && (
+            <section className="bg-white rounded-3xl border border-gray-100 p-7 shadow-sm">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">My Applications</p>
+                  <h3 className="text-2xl font-black tracking-tight text-gray-900">
+                    {data.applications_summary.total} application{data.applications_summary.total === 1 ? '' : 's'}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => navigate('/applications')}
+                  className="text-sm font-bold text-gray-400 hover:text-black transition-colors cursor-pointer inline-flex items-center gap-1"
+                >
+                  View all <RightOutlined />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <SummaryTile
+                  label="Tests to take"
+                  count={data.applications_summary.tests_to_take}
+                  tone="indigo"
+                  onClick={() => navigate('/applications?tab=in_progress')}
+                />
+                <SummaryTile
+                  label="In review"
+                  count={data.applications_summary.tests_in_review}
+                  tone="amber"
+                  onClick={() => navigate('/applications?tab=in_progress')}
+                />
+                <SummaryTile
+                  label="Completed"
+                  count={data.applications_summary.tests_completed}
+                  tone="emerald"
+                  onClick={() => navigate('/applications?tab=completed')}
+                />
+              </div>
+            </section>
+          )}
+
           <div className="flex items-center justify-between">
             <h3 className="text-2xl font-black tracking-tight text-gray-900">Active Assessments</h3>
             <button onClick={() => navigate('/my-assessments')} className="text-sm font-bold text-gray-400 hover:text-black transition-colors cursor-pointer">
@@ -319,6 +362,32 @@ const Dashboard: React.FC = () => {
         </aside>
       </div>
     </div>
+  );
+};
+
+// T2: dashboard summary tile used by the applications panel. The
+// dashboard owns this locally rather than reusing the applications page
+// SummaryTile because the dashboard tiles are clickable.
+const SummaryTile: React.FC<{
+  label: string;
+  count: number;
+  tone: 'indigo' | 'amber' | 'emerald';
+  onClick: () => void;
+}> = ({ label, count, tone, onClick }) => {
+  const palette = {
+    indigo: 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100',
+    amber: 'bg-amber-50 text-amber-700 hover:bg-amber-100',
+    emerald: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
+  }[tone];
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-2xl px-5 py-4 text-left transition-colors cursor-pointer ${palette}`}
+    >
+      <div className="text-3xl font-black tracking-tighter">{count}</div>
+      <div className="mt-1 text-[10px] font-black uppercase tracking-widest">{label}</div>
+    </button>
   );
 };
 

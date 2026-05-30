@@ -3,11 +3,15 @@ import {
   BankOutlined,
   CalendarOutlined,
   CheckCircleFilled,
+  CheckSquareOutlined,
   ClockCircleOutlined,
   CloseCircleFilled,
   FileSearchOutlined,
+  HourglassOutlined,
+  PlayCircleFilled,
   RocketFilled,
   ThunderboltFilled,
+  TrophyFilled,
 } from '@ant-design/icons';
 import { Empty, Spin } from 'antd';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -171,6 +175,13 @@ const ApplicationsPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {filtered.map((vacancy) => {
             const highlighted = highlightId === vacancy.id;
+            // T1: each card now drives its CTA off the application's own
+            // `test` block (status + cta_url already encode which
+            // application the test belongs to).
+            const handleTestCta = () => {
+              const cta = vacancy.test?.cta_url;
+              if (cta) navigate(cta);
+            };
             return (
               <ApplicationCard
                 key={vacancy.id}
@@ -178,11 +189,7 @@ const ApplicationsPage: React.FC = () => {
                 pipeline={pipeline}
                 highlighted={highlighted}
                 onOpen={() => setOpenVacancyId(vacancy.id)}
-                onStartTest={
-                  vacancy.practice
-                    ? () => navigate(`/test/${vacancy.practice!.practice_id}`)
-                    : undefined
-                }
+                onTestCta={handleTestCta}
               />
             );
           })}
@@ -224,20 +231,67 @@ interface ApplicationCardProps {
   pipeline: string[];
   highlighted: boolean;
   onOpen: () => void;
-  onStartTest?: () => void;
+  onTestCta: () => void;
 }
+
+// T3: status-driven visuals for the application's test block. One CTA,
+// one label, one icon — the same across applications/dashboard.
+const testCtaTheme = (status: string) => {
+  switch (status) {
+    case 'ready_to_take':
+      return {
+        button: 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-600/20',
+        icon: <ThunderboltFilled />,
+      };
+    case 'in_progress':
+      return {
+        button: 'bg-amber-500 hover:bg-amber-600 text-white shadow-md shadow-amber-500/20',
+        icon: <PlayCircleFilled />,
+      };
+    case 'completed':
+      return {
+        button: 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20',
+        icon: <TrophyFilled />,
+      };
+    default:
+      return {
+        button: 'bg-gray-900 hover:bg-gray-700 text-white',
+        icon: <CheckSquareOutlined />,
+      };
+  }
+};
+
+const testBadgeTone = (status: string) => {
+  switch (status) {
+    case 'ready_to_take':
+      return 'bg-indigo-50 text-indigo-700 border-indigo-100';
+    case 'in_progress':
+      return 'bg-amber-50 text-amber-700 border-amber-100';
+    case 'completed':
+      return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+    case 'submitted':
+      return 'bg-sky-50 text-sky-700 border-sky-100';
+    case 'expired':
+      return 'bg-rose-50 text-rose-700 border-rose-100';
+    case 'not_assigned':
+      return 'bg-gray-50 text-gray-600 border-gray-100';
+    default:
+      return 'bg-gray-50 text-gray-500 border-gray-100';
+  }
+};
 
 const ApplicationCard: React.FC<ApplicationCardProps> = ({
   vacancy,
   pipeline,
   highlighted,
   onOpen,
-  onStartTest,
+  onTestCta,
 }) => {
   const { t } = useI18n();
   const app = vacancy.application;
   const stageIndex = app?.stage_index ?? 0;
   const status = app?.status ?? 'Applied';
+  const test = vacancy.test;
 
   return (
     <div
@@ -285,6 +339,44 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
 
       <PipelineStepper pipeline={pipeline} stageIndex={stageIndex} status={status} />
 
+      {/* T1/T2: per-application test block — single source of truth
+          for what test belongs to this application. */}
+      {test && test.status !== 'unavailable' && (
+        <div className="mt-5 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-800/40 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase font-black tracking-widest text-gray-400">
+                {t('jobs.assignedTest')}
+              </div>
+              <div className="mt-0.5 font-bold text-gray-900 dark:text-white truncate">
+                {vacancy.practice?.title ?? t('jobs.testLabel')}
+              </div>
+              <div
+                className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest border ${testBadgeTone(test.status)}`}
+              >
+                {test.status === 'completed' ? <TrophyFilled /> : <HourglassOutlined />}
+                {test.label}
+              </div>
+              {test.score !== null && test.score !== undefined && (
+                <div className="mt-2 text-xs font-bold text-gray-700 dark:text-gray-200">
+                  {t('jobs.testScore')}: <span className="font-black">{test.score}%</span>
+                </div>
+              )}
+            </div>
+
+            {test.cta_label && test.cta_url && (
+              <button
+                type="button"
+                onClick={onTestCta}
+                className={`shrink-0 rounded-2xl px-4 py-2 text-xs font-black cursor-pointer inline-flex items-center gap-1.5 ${testCtaTheme(test.status).button}`}
+              >
+                {testCtaTheme(test.status).icon} {test.cta_label}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
         <button
           type="button"
@@ -293,22 +385,13 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
         >
           {t('jobs.viewDetails')}
         </button>
-
-        {vacancy.practice && status === 'Testing' && onStartTest && (
-          <button
-            type="button"
-            onClick={onStartTest}
-            className="rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-xs font-black cursor-pointer shadow-md shadow-indigo-600/20 inline-flex items-center gap-1.5"
-          >
-            <ThunderboltFilled /> {t('jobs.startAssignedTest')}
-          </button>
-        )}
-
-        {vacancy.practice && status !== 'Testing' && (
-          <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 inline-flex items-center gap-1">
-            <ClockCircleOutlined /> {vacancy.practice.title}
-          </span>
-        )}
+        {!test || test.status === 'unavailable' ? (
+          vacancy.practice && (
+            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 inline-flex items-center gap-1">
+              <ClockCircleOutlined /> {vacancy.practice.title}
+            </span>
+          )
+        ) : null}
       </div>
     </div>
   );

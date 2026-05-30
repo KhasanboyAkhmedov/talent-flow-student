@@ -182,6 +182,8 @@
     "candidates": "кандидатов",
     "description": "О вакансии",
     "assignedTest": "Назначенный тест",
+    "testLabel": "Тест",
+    "testScore": "Результат",
     "startAssignedTest": "Начать назначенный тест",
     "yourStatus": "Ваша заявка",
     "notAppliedYet": "Вы ещё не откликнулись.",
